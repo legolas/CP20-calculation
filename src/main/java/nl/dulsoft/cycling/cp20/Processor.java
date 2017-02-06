@@ -18,8 +18,11 @@ class Processor {
     private static final LocalTime START_TEST = LocalTime.of(0, 20);
     private static final LocalTime END_TEST = LocalTime.of(0, 40);
     private final Score score;
-    private int totalPower;
-    private int powerCount;
+    private int count;
+    private double totalPower;
+    private double averagePower;
+    private double totalHeartRate;
+    private double averageHeartRate;
 
     Processor(File scoreFile) throws JAXBException {
         JAXBContext context = JAXBContext.newInstance(Score.class);
@@ -29,22 +32,30 @@ class Processor {
         System.out.println(score);
     }
 
-    double calculateFunctionalThresholdPower() {
-        System.out.printf("Score for %s is ", score.getUserInfo().getName());
-
+    void doCalculate() {
         score.getRun()
                 .getOuterRunData()
                 .getRunDatas()
                 .stream()
                 .filter(this::betweenStartAndEndDate)
-                .forEach(this::calculateFunctionalThresholdPower);
+                .forEach(this::doCalculate);
 
-        return (double) this.totalPower / this.powerCount;
+        this.averagePower = this.totalPower / this.count;
+        this.averageHeartRate = this.totalHeartRate / this.count;
     }
 
-    private void calculateFunctionalThresholdPower(RunData runData) {
+    double averageHeartRate() {
+        return this.totalHeartRate / this.count;
+    }
+
+    double averagePower() {
+        return this.totalPower / this.count;
+    }
+
+    private void doCalculate(RunData runData) {
         this.totalPower += runData.getPower();
-        this.powerCount++;
+        this.totalHeartRate += runData.getHeartRate();
+        this.count++;
     }
 
     private boolean betweenStartAndEndDate(RunData runData) {
@@ -52,5 +63,9 @@ class Processor {
         LocalTime timeStamp = LocalTime.parse(runData.getTime(), DateTimeFormatter.ISO_LOCAL_TIME);
         return timeStamp.isAfter(START_TEST)
                 && timeStamp.isBefore(END_TEST);
+    }
+
+    String getName() {
+        return score.getUserInfo().getName();
     }
 }

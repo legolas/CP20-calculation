@@ -15,6 +15,12 @@ public class Main {
                 .orElseThrow(() -> new IllegalArgumentException("Cannot read file"));
 
 
-        System.out.println(new Processor(new File(resource.getFile())).calculateFunctionalThresholdPower());
+        Processor processor = new Processor(new File(resource.getFile()));
+        processor.doCalculate();
+
+        System.out.printf("Score for %s average heartbeat is %f and average power is %f%n",
+                processor.getName(),
+                processor.averageHeartRate(),
+                processor.averagePower());
     }
 }
